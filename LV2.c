@@ -23,20 +23,27 @@ int* kreirajNiz(int n) {
 }
 
 
-OE* napraviPovezaniPopis(int *V, int n) {
+OE* kreirajPovezaniPopis(int *V, int n) {
     OE *prvi = NULL;
+    OE *temp = NULL;
 
-    for (int i = 0; i < n; i++) {
-        OE *novi = (OE*)malloc(sizeof(OE));
-        if (novi == NULL) {
+
+    prvi = (OE*)malloc(sizeof(OE));
+    if (prvi == NULL) {
+            printf("Greska pri alokaciji memorije!\n");
+            exit(1);
+    }
+
+    temp = prvi;
+    for (int i = 0; i < n-1; i++) {
+        temp->sljedeci = (OE*)malloc(sizeof(OE));
+        if (temp->sljedeci == NULL) {
             printf("Greska pri alokaciji memorije!\n");
             exit(1);
         }
-        novi->x = V[i];
-        novi->sljedeci = NULL;
-
-        if (prvi == NULL) prvi = novi;
+        temp = temp->sljedeci;
     }
+    temp->sljedeci = NULL;
 
     return prvi;
 }
@@ -71,42 +78,59 @@ void oslobodiPopis(OE *prvi) {
 }
 
 
-double odradi(int n){
+void odradi(int n){
+    int *niz;
+    OE *popis;
+    int found = 0;
+    double vrijeme[4];
+    clock_t t1, t2;
+
+
+    //
+    t1 = clock();
+    niz = kreirajNiz(n);
+    t2 = clock();
+
+    vrijeme[0] = (double)(t2-t1) / CLOCKS_PER_SEC * 1000;
+
+
+    //
+    t1 = clock();
+    popis = kreirajPovezaniPopis(niz, n);
+    t2 = clock();
+
+    vrijeme[1] = (double)(t2-t1) / CLOCKS_PER_SEC * 1000;
+
+
+    //
+    t1 = clock();
+    found = pretraziNiz(niz, n, -1);
+    t2 = clock();
+
+    vrijeme[2] = (double)(t2-t1) / CLOCKS_PER_SEC * 1000;
+
+
+    //
+    t1 = clock();
+    found = pretraziPovezaniPopis(popis, -1);
+    t2 = clock();
+
+    vrijeme[3] = (double)(t2-t1) / CLOCKS_PER_SEC * 1000;
+
+    printf("Vremena: %.3f, %.3f, %.3f, %.3f\n", vrijeme[0], vrijeme[1], vrijeme[2], vrijeme[3]);
 
 }
 
 
 int main(){
 
-    
-    int *niz;
-    int n;
-
-
     srand(time(NULL));
-
-    //niz
-    clock_t t1 = clock();
-    niz = kreirajNiz(n);
-
-    clock_t t2 = clock();
-
-    double vrijeme = (double)(t2-t1) / CLOCKS_PER_SEC * 1000;
-    printf("Vrijeme kreiranja niza: %.3f", vrijeme);
-
-    //
-    clock_t t1 = clock();
-
-    clock_t t2 = clock();
-
-    double vrijeme = (double)(t2-t1) / CLOCKS_PER_SEC * 1000;
-    printf("Vrijeme kreiranja niza: %.3f", vrijeme);
-
-
-    clock_t t1 = clock();
-
-    clock_t t2 = clock();
-
-    double vrijeme = (double)(t2-t1) / CLOCKS_PER_SEC * 1000;
-    printf("Vrijeme kreiranja niza: %.3f", vrijeme);
+    odradi(50000);
+    odradi(100000);
+    odradi(150000);
+    odradi(200000);
+    odradi(250000);
+    odradi(300000);
+    odradi(350000);
+    
 }
