@@ -119,6 +119,8 @@ void odradi(int n){
 
     printf("Vremena: %.3f, %.3f, %.3f, %.3f\n", vrijeme[0], vrijeme[1], vrijeme[2], vrijeme[3]);
 
+    free(niz);
+    oslobodiPopis(popis);
 }
 
 
