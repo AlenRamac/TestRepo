@@ -14,15 +14,15 @@ typedef struct {
 
 
 
-void initLL(Stack* s) {
+void init(Stack* s) {
     s->top = NULL;
 }
 
-int isEmptyLL(Stack* s) {
+int isEmpty(Stack* s) {
     return s->top == NULL;
 }
 
-void pushLL(Stack* s, int value) {
+void push(Stack* s, int value) {
     Node* newNode = (Node*)malloc(sizeof(Node));
     if (!newNode) {
         printf("Memory allocation error!\n");
@@ -33,8 +33,8 @@ void pushLL(Stack* s, int value) {
     s->top = newNode;
 }
 
-int popLL(Stack* s) {
-    if (isEmptyLL(s)) {
+int pop(Stack* s) {
+    if (isEmpty(s)) {
         printf("Stack underflow!\n");
         return -1;
     }
@@ -47,8 +47,8 @@ int popLL(Stack* s) {
     return value;
 }
 
-int peekLL(Stack* s) {
-    if (isEmptyLL(s)) {
+int peek(Stack* s) {
+    if (isEmpty(s)) {
         printf("Stack is empty!\n");
         return -1;
     }
@@ -62,34 +62,31 @@ int peekLL(Stack* s) {
 long long povrh_stog(int n, int m)
 {
     Stack s1, s2;
-    initLL(&s1);
-    initLL(&s2);
+    init(&s1);
+    init(&s2);
 
     long long result = 0;
+    
+    push(&s1, n);
+    push(&s2, m);
 
-    // početni problem (n, m)
-    pushLL(&s1, n);
-    pushLL(&s2, m);
-
-    while (!isEmptyLL(&s1))
+    while (!isEmpty(&s1))
     {
-        int N = popLL(&s1);
-        int M = popLL(&s2);
+        int N = pop(&s1);
+        int M = pop(&s2);
 
-        // osnovni slučajevi iz slajda
+
         if (M == 0 || M == N)
         {
             result++;
         }
         else
         {
-            // rekurzija: C(n-1, m-1)
-            pushLL(&s1, N - 1);
-            pushLL(&s2, M - 1);
+            push(&s1, N - 1);
+            push(&s2, M - 1);
 
-            // rekurzija: C(n-1, m)
-            pushLL(&s1, N - 1);
-            pushLL(&s2, M);
+            push(&s1, N - 1);
+            push(&s2, M);
         }
     }
 
