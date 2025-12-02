@@ -14,11 +14,11 @@ typedef struct Stack_
 
 
 //---------
-void initLL(Stack *s) {
+void init(Stack *s) {
     s->top = -1;
 }
 
-int isEmptyLL(Stack *s) {
+int isEmpty(Stack *s) {
     return s->top == -1;
 }
 
@@ -26,7 +26,7 @@ int isFull(Stack *s) {
     return s->top == MAX - 1;
 }
 
-void pushLL(Stack *s, int value) {
+void push(Stack *s, int value) {
     if (isFull(s)) {
         printf("Stack Overflow!\n");
         exit(1);
@@ -34,8 +34,8 @@ void pushLL(Stack *s, int value) {
     s->Items[++(s->top)] = value;
 }
 
-int popLL(Stack *s) {
-    if (isEmptyLL(s)) {
+int pop(Stack *s) {
+    if (isEmpty(s)) {
         printf("Stack Underflow!\n");
         exit(1);
     }
@@ -43,7 +43,7 @@ int popLL(Stack *s) {
 }
 
 long long peek(Stack *s){ 
-    if(isEmptyLL(s)) { 
+    if(isEmpty(s)) { 
         printf("Stack is empty!"); 
         return -1; 
     } 
@@ -57,34 +57,30 @@ long long peek(Stack *s){
 long long povrh_stog(int n, int m)
 {
     Stack s1, s2;
-    initLL(&s1);
-    initLL(&s2);
+    init(&s1);
+    init(&s2);
 
     long long result = 0;
 
-    // početni problem (n, m)
-    pushLL(&s1, n);
-    pushLL(&s2, m);
+    push(&s1, n);
+    push(&s2, m);
 
-    while (!isEmptyLL(&s1))
+    while (!isEmpty(&s1))
     {
-        int N = popLL(&s1);
-        int M = popLL(&s2);
+        int N = pop(&s1);
+        int M = pop(&s2);
 
-        // osnovni slučajevi iz slajda
         if (M == 0 || M == N)
         {
             result++;
         }
         else
         {
-            // rekurzija: C(n-1, m-1)
-            pushLL(&s1, N - 1);
-            pushLL(&s2, M - 1);
+            push(&s1, N - 1);
+            push(&s2, M - 1);
 
-            // rekurzija: C(n-1, m)
-            pushLL(&s1, N - 1);
-            pushLL(&s2, M);
+            push(&s1, N - 1);
+            push(&s2, M);
         }
     }
 
