@@ -1,0 +1,105 @@
+1.Izraditi tablicu nekretnine koja će imati atribute: br. kat. čestice, površina, tip, datum
+stjecanja vlasništva, prezime_vlasnika, ime_vlasnika, OIB_vlasnika. Definirajte sva potrebna
+ograničenja da bi tablica bila funkcionalna. Unijeti 5 nekretnina u tablicu koristeći INSERT
+naredbu.
+
+
+
+
+
+CREATE TABLE nekretnine (
+    br_kat_cestice INT PRIMARY KEY,
+    povrsina INT NOT NULL,
+    tip VARCHAR(50) NOT NULL,
+    datum_stjecanja DATE NOT NULL,
+    prezime_vlasnika VARCHAR(50) NOT NULL,
+    ime_vlasnika VARCHAR(50) NOT NULL,
+    OIB_vlasnika CHAR(11) NOT NULL
+);
+
+
+
+
+2.Zamijeniti vlasnika nekretnina pod rednim brojem 2 i 4 iz tablice zadatka 1. Smanjiti
+površinu svih nekretnina za 10m2 (koristeći jednu UPDATE naredbu).
+
+
+
+
+INSERT INTO nekretnine VALUES
+(1, 120, 'Stan', '2018-05-10', 'Horvat', 'Ivan', '12345678901'),
+(2, 340, 'Kuća', '2020-03-12', 'Kovač', 'Ana', '23456789012'),
+(3, 95,  'Zemljište', '2015-09-20', 'Marić', 'Luka', '34567890123'),
+(4, 210, 'Stan', '2021-01-15', 'Babić', 'Marko', '45678901234'),
+(5, 150, 'Kuća', '2019-07-30', 'Novak', 'Petra', '56789012345');
+
+
+
+UPDATE nekretnine n1
+JOIN nekretnine n2 ON n1.br_kat_cestice = 2 AND n2.br_kat_cestice = 4
+SET 
+    n1.ime_vlasnika = n2.ime_vlasnika,
+    n1.prezime_vlasnika = n2.prezime_vlasnika,
+    n1.OIB_vlasnika = n2.OIB_vlasnika,
+    n2.ime_vlasnika = n1.ime_vlasnika,
+    n2.prezime_vlasnika = n1.prezime_vlasnika,
+    n2.OIB_vlasnika = n1.OIB_vlasnika;
+
+
+
+UPDATE nekretnine
+SET povrsina = povrsina - 10;
+
+
+3.Iz tablice student dohvatiti sve studente poredane prema datumu rođenja (od najstarijeg
+prema najmlađem).
+Iz iste tablice ispisati ime, prezime i datum upisa svih studenata koji su upisali fakultet
+nakon 2014.
+Napomena: U oba upita za atribute koristiti opisne nazive (AS).
+
+
+
+
+SELECT 
+    ime AS Ime,
+    prezime AS Prezime,
+    datum_rodenja AS 'Datum rođenja'
+FROM student
+ORDER BY datum_rodenja ASC;
+
+
+
+
+SELECT 
+    ime AS Ime,
+    prezime AS Prezime,
+    datum_upisa AS 'Datum upisa'
+FROM student
+WHERE datum_upisa > '2014-12-31';
+
+
+
+
+
+
+4.Ispisati ime i prezime studenta, naziv predmeta i datum ispita za sve one studente koji su
+ostvarili ocjenu 3 ili veću. Za rješavanje zadatka potrebno je koristiti podatke iz 3 tablice
+(Student, Predmet i Ispit).
+
+
+SELECT 
+    s.ime AS Ime,
+    s.prezime AS Prezime,
+    p.naziv AS 'Naziv predmeta',
+    i.datum_ispita AS 'Datum ispita'
+FROM student s
+JOIN ispit i ON s.id_student = i.id_student
+JOIN predmet p ON i.id_predmet = p.id_predmet
+WHERE i.ocjena >= 3;
+
+
+
+
+
+
+
