@@ -17,15 +17,6 @@ CREATE TABLE nekretnine (
     OIB_vlasnika CHAR(11) NOT NULL
 );
 
-
-
-
-2.Zamijeniti vlasnika nekretnina pod rednim brojem 2 i 4 iz tablice zadatka 1. Smanjiti
-površinu svih nekretnina za 10m2 (koristeći jednu UPDATE naredbu).
-
-
-
-
 INSERT INTO nekretnine VALUES
 (1, 120, 'Stan', '2018-05-10', 'Horvat', 'Ivan', '12345678901'),
 (2, 340, 'Kuća', '2020-03-12', 'Kovač', 'Ana', '23456789012'),
@@ -34,21 +25,24 @@ INSERT INTO nekretnine VALUES
 (5, 150, 'Kuća', '2019-07-30', 'Novak', 'Petra', '56789012345');
 
 
-
-UPDATE nekretnine n1
-JOIN nekretnine n2 ON n1.br_kat_cestice = 2 AND n2.br_kat_cestice = 4
-SET 
-    n1.ime_vlasnika = n2.ime_vlasnika,
-    n1.prezime_vlasnika = n2.prezime_vlasnika,
-    n1.OIB_vlasnika = n2.OIB_vlasnika,
-    n2.ime_vlasnika = n1.ime_vlasnika,
-    n2.prezime_vlasnika = n1.prezime_vlasnika,
-    n2.OIB_vlasnika = n1.OIB_vlasnika;
+2.Zamijeniti vlasnika nekretnina pod rednim brojem 2 i 4 iz tablice zadatka 1. Smanjiti
+površinu svih nekretnina za 10m2 (koristeći jednu UPDATE naredbu).
 
 
+UPDATE nekretnine SET povrsina = povrsina - 10,
+ ime_vlasnika = CASE br_kat_cestice 
+		WHEN 2 THEN (SELECT ime_vlasnika FROM nekretnine WHERE br_kat_cestice = 4) 
+		WHEN 4 THEN (SELECT ime_vlasnika FROM nekretnine WHERE br_kat_cestice = 2) 
+		ELSE ime_vlasnika END,
+ prezime_vlasnika = CASE br_kat_cestice 
+		WHEN 2 THEN (SELECT prezime_vlasnika FROM nekretnine WHERE br_kat_cestice = 4) 
+		WHEN 4 THEN (SELECT prezime_vlasnika FROM nekretnine WHERE br_kat_cestice = 2) 
+		ELSE prezime_vlasnika END,
+ OIB_vlasnika = CASE br_kat_cestice 
+		WHEN 2 THEN (SELECT OIB_vlasnika FROM nekretnine WHERE br_kat_cestice = 4) 
+		WHEN 4 THEN (SELECT OIB_vlasnika FROM nekretnine WHERE br_kat_cestice = 2)
+		ELSE OIB_vlasnika END;
 
-UPDATE nekretnine
-SET povrsina = povrsina - 10;
 
 
 3.Iz tablice student dohvatiti sve studente poredane prema datumu rođenja (od najstarijeg
