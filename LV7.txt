@@ -1,0 +1,307 @@
+1. Koristeći POSIX Threads biblioteku kreirajte program koji kreira i pokreće 3 neovisne niti: jednu nit
+za ispis najvećeg elementa polja, drugu za ispis najmanjeg elementa polja i treću za ispis aritmetičke
+sredine elemenata polja. Polje inicijalizirajte kao globalnu varijablu. 
+
+nano zad1.c
+
+#include <stdio.h> 
+#include <pthread.h> 
+
+int polje[] = {3, 7, 2, 9, 4}; 
+int n = 5; 
+
+void *max_f(void *arg) { 
+    int max = polje[0]; 
+
+    int i = 1;
+    for(;i<n;i++) 
+	if(polje[i] > max) 
+		max = polje[i]; 
+
+    printf("Najveci: %d\n", max); 
+    pthread_exit(NULL); 
+} 
+
+ 
+
+void *min_f(void *arg) { 
+    int min = polje[0]; 
+
+    int i=1;
+    for(;i<n;i++) 
+	if(polje[i] < min) 
+		min = polje[i]; 
+
+    printf("Najmanji: %d\n", min); 
+    pthread_exit(NULL); 
+} 
+
+void *avg_f(void *arg) { 
+    int sum = 0; 
+
+    int i=0;
+    for(;i<n;i++) 
+	sum += polje[i]; 
+    printf("Aritmeticka sredina: %.2f\n", (float)sum/n); 
+    pthread_exit(NULL); 
+} 
+
+ 
+
+int main() { 
+    pthread_t t1, t2, t3; 
+
+    pthread_create(&t1, NULL, max_f, NULL); 
+    pthread_create(&t2, NULL, min_f, NULL); 
+    pthread_create(&t3, NULL, avg_f, NULL); 
+
+    pthread_join(t1, NULL); 
+    pthread_join(t2, NULL); 
+    pthread_join(t3, NULL); 
+
+    return 0; 
+} 
+
+ 
+gcc zad1.c -o zad1 -lpthread
+./zad1
+Najveci: 9 
+Aritmeticka sredina: 5.00 
+Najmanji: 2 
+
+ 
+
+ 
+
+2. Koristeći POSIX Threads biblioteku napravite program koji kreira i pokreće dvije niti: prva nit
+neprestano (beskonačno) inkrementira vrijednost neke globalne varijable, dok druga neprestano
+dekrementira njezinu vrijednosti. Obje niti ispisuju vrijednost varijable nakon izvođenja operacije
+(za lakšu provjeru ispisa možete „uspavati“ niti na jednu sekundu).
+
+
+nano zad2.c
+
+#include <stdio.h> 
+#include <pthread.h> 
+#include <unistd.h> 
+
+int x = 0; 
+
+void *inc(void *arg) { 
+    while(1) { 
+        x++; 
+        printf("Inc: %d\n", x); 
+        sleep(1); 
+    } 
+} 
+
+ 
+
+void *dec(void *arg) { 
+    while(1) { 
+        x--; 
+        printf("Dec: %d\n", x); 
+        sleep(1); 
+    } 
+} 
+
+ 
+
+int main() { 
+    pthread_t t1, t2; 
+
+    pthread_create(&t1, NULL, inc, NULL); 
+    pthread_create(&t2, NULL, dec, NULL); 
+
+    pthread_join(t1, NULL); 
+    pthread_join(t2, NULL); 
+
+    return 0; 
+} 
+
+ 
+gcc zad2.c -o zad2 -lpthread
+./zad2
+ 
+
+3. Program iz zadataka 2 nadopunite tako da implementirate međusobno isključivanje dviju niti
+pomoću Dekkerova algoritma.
+
+
+
+nano zad3.c
+
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+
+int x = 0;
+int turn = 0;
+int flag[2] = {0, 0};
+
+void *inc(void *arg) {
+    int i = 0, j = 1;
+
+    while (1) {
+        flag[i] = 1;
+        while (flag[j]) {
+            if (turn == j) {
+                flag[i] = 0;
+                while (turn == j);
+                flag[i] = 1;
+            }
+        }
+
+        x++;
+        printf("INC: %d\n", x);
+
+        turn = j;
+        flag[i] = 0;
+        sleep(1);
+    }
+}
+ 
+void *dec(void *arg) {
+    int i = 1, j = 0;
+
+    while (1) {
+        flag[i] = 1;
+        while (flag[j]) {
+            if (turn == j) {
+                flag[i] = 0;
+                while (turn == j);
+                flag[i] = 1;
+            }
+        }
+
+        x--;
+        printf("DEC: %d\n", x);
+
+        turn = j;
+        flag[i] = 0;
+        sleep(1);
+    }
+}
+
+int main() {
+    pthread_t t1, t2;
+
+    pthread_create(&t1, NULL, inc, NULL);
+    pthread_create(&t2, NULL, dec, NULL);
+
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+
+    return 0;
+}
+ 
+
+gcc zad3.c -o zad3 -lpthread
+./zad3
+
+
+
+
+4. Program iz zadataka 2 nadopunite tako da implementirate međusobno isključivanje dviju niti
+pomoću Petersonova algoritma. 
+
+nano zad4.c
+
+
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+
+int x = 0;
+int turn;
+int flag[2] = {0, 0};
+
+void *inc(void *arg) {
+    int i = 0, j = 1;
+    while (1) {
+        flag[i] = 1;
+        turn = j;
+        while (flag[j] && turn == j);
+
+        x++;
+        printf("INC: %d\n", x);
+
+        flag[i] = 0;
+        sleep(1);
+    }
+}
+
+void *dec(void *arg) {
+    int i = 1, j = 0;
+    while (1) {
+        flag[i] = 1;
+        turn = j;
+        while (flag[j] && turn == j);
+
+        x--;
+        printf("DEC: %d\n", x);
+
+        flag[i] = 0;
+        sleep(1);
+    }
+}
+
+int main() {
+    pthread_t t1, t2;
+
+    pthread_create(&t1, NULL, inc, NULL);
+    pthread_create(&t2, NULL, dec, NULL);
+
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+
+    return 0;
+} 
+
+ 
+
+gcc zad4.c -o zad2 -lpthread
+./zad4
+
+
+
+5. Zadan je sustav sa 4 resursa čiji je broj instanci definiran vektorom E = [6 5 8 7]. Pretpostavimo da
+je u memoriji u nekom trenutku 4 procesa (A, B, C, D) sa sljedećom tablicom alociranih resursa C te
+tablicom potrebnih resursa R. 
+
+E = (6 5 8 7) 
+
+Zbroj C po stupcima: 
+
+ 1 1 1 1
+ 2 0 1 3
+ 2 3 4 1
+ 0 0 2 0
+----------
+ 5 4 8 5
+
+
+Available = E − C = (1 1 0 2)
+
+
+Proces A: R(A) = (1 0 0 2) --> može 
+
+Available = (1 1 0 2) + (1 1 1 1) = (2 2 1 3) 
+
+
+Proces B: R(B) = (2 1 1 2) A --> može 
+
+Available = (2 2 1 3) + (2 0 1 3) = (4 2 2 6) 
+
+
+Proces D: R(D) = (2 2 2 2) --> može 
+
+Available = (4 2 2 6) + (0 0 2 0) = (4 2 4 6) 
+
+
+Proces C: R(C) = (3 2 3 5) --> može 
+
+Available = (4 2 4 6) + (2 3 4 1) = (6 5 8 7) 
+
+
+Zaključak: sustav je rješiv, nema zastoja. 
