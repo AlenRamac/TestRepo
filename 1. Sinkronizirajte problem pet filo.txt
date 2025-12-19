@@ -1,0 +1,205 @@
+1. Sinkronizirajte problem pet filozofa upotrebom monitora. Monitore možete implementirati korištenjem muteksa i uvjetnih varijabli, uz odgovarajuću logiku za ovaj sinkronizacijski problem.
+
+Prvo sam otvorio nano uređivač naredbom nano program1.c
+student67@linux:~$ nano program1.c
+
+Pišemo slijedeći kod za sinkronizaciju problema pet filozofa
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <unistd.h>
+
+#define N 5
+
+#define MISLI 0
+#define GLADAN 1
+#define JEDE 2
+
+int stanje[N];
+pthread_mutex_t mutex;
+pthread_cond_t uvjet[N];
+
+int lijevi(int i) {
+    return (i + N - 1) % N;
+}
+
+int desni(int i) {
+    return (i + 1) % N;
+}
+
+void test(int i) {
+    if (stanje[i] == GLADAN &&
+        stanje[lijevi(i)] != JEDE &&
+        stanje[desni(i)] != JEDE) {
+
+        stanje[i] = JEDE;
+        pthread_cond_signal(&uvjet[i]);
+    }
+}
+
+void uzmi_vilice(int i) {
+    pthread_mutex_lock(&mutex);
+
+    stanje[i] = GLADAN;
+    printf("Filozof %d je gladan\n", i);
+
+    test(i);
+    while (stanje[i] != JEDE)
+        pthread_cond_wait(&uvjet[i], &mutex);
+
+    pthread_mutex_unlock(&mutex);
+}
+
+void vrati_vilice(int i) {
+    pthread_mutex_lock(&mutex);
+
+    stanje[i] = MISLI;
+    printf("Filozof %d vraca vilice i misli\n", i);
+
+    test(lijevi(i));
+    test(desni(i));
+
+    pthread_mutex_unlock(&mutex);
+}
+
+void* filozof(void* arg) {
+    int i;
+    i = *(int*)arg;
+
+    while (1) {
+        sleep(1);          /* razmisljanje */
+        uzmi_vilice(i);
+        printf("Filozof %d jede\n", i);
+        sleep(2);          /* jedenje */
+        vrati_vilice(i);
+    }
+}
+
+int main() {
+    pthread_t nit[N];
+    int id[N];
+    int i;
+
+    pthread_mutex_init(&mutex, NULL);
+
+    for (i = 0; i < N; i++) {
+        pthread_cond_init(&uvjet[i], NULL);
+        stanje[i] = MISLI;
+        id[i] = i;
+        pthread_create(&nit[i], NULL, filozof, &id[i]);
+    }
+
+    for (i = 0; i < N; i++)
+        pthread_join(nit[i], NULL);
+
+    return 0;
+}
+
+gcc zad1.c -o zad1 -lpthread
+./zad1
+
+Dobiveni ispis:
+
+
+
+
+
+
+
+2. Implementirajte sinkronizaciju problema pušača cigareta (Patil, 1971.) upotrebom semafora. Opis problema: Zamislite sustav s tri niti pušača i jednom niti trgovcem. Svaki pušač neprestano savija cigarete i puši. Kako bi se savila i popušila cigareta potrebno je imati tri sastojka: duhan, papir i šibice. Jedan pušač ima u neograničenim količinama samo papir, drugi samo duhan, a treći samo šibice. Trgovac ima sva tri sastojka u neograničenim količinama. Trgovac nasumice stavlja na stol dva različita sastojka. Pušač koji ima treći sastojak uzima sastojke sa stola, signalizira trgovcu, savija cigaretu i puši. Trgovac stavlja nova dva sastojka na stol i ciklus se ponavlja. Na početku je stol prazan. Napisati niti pušača i trgovca tako da se one međusobno ispravno sinkroniziraju pomoću semafora. Napisati početne vrijednosti semafora. 
+
+
+
+nano zad2.c
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+sem_t agent;
+sem_t duhan;
+sem_t papir;
+sem_t sibice;
+
+void* trgovac(void* arg) {
+    int r;
+
+    while (1) {
+        sem_wait(&agent);
+
+        r = rand() % 3;
+
+        if (r == 0) {
+            printf("Trgovac stavlja papir i sibice\n");
+            sem_post(&duhan);
+        } else if (r == 1) {
+            printf("Trgovac stavlja duhan i sibice\n");
+            sem_post(&papir);
+        } else {
+            printf("Trgovac stavlja duhan i papir\n");
+            sem_post(&sibice);
+        }
+    }
+}
+
+void* pusac_duhan(void* arg) {
+    while (1) {
+        sem_wait(&duhan);
+        printf("Pusac s duhanom savija i pusi\n");
+        sleep(1);
+        sem_post(&agent);
+    }
+}
+
+void* pusac_papir(void* arg) {
+    while (1) {
+        sem_wait(&papir);
+        printf("Pusac s papirom savija i pusi\n");
+        sleep(1);
+        sem_post(&agent);
+    }
+}
+
+void* pusac_sibice(void* arg) {
+    while (1) {
+        sem_wait(&sibice);
+        printf("Pusac sa sibicama savija i pusi\n");
+        sleep(1);
+        sem_post(&agent);
+    }
+}
+
+int main() {
+    pthread_t t_trgovac;
+    pthread_t t_duhan, t_papir, t_sibice;
+
+    sem_init(&agent, 0, 1);
+    sem_init(&duhan, 0, 0);
+    sem_init(&papir, 0, 0);
+    sem_init(&sibice, 0, 0);
+
+    pthread_create(&t_trgovac, NULL, trgovac, NULL);
+    pthread_create(&t_duhan, NULL, pusac_duhan, NULL);
+    pthread_create(&t_papir, NULL, pusac_papir, NULL);
+    pthread_create(&t_sibice, NULL, pusac_sibice, NULL);
+
+    pthread_join(t_trgovac, NULL);
+    pthread_join(t_duhan, NULL);
+    pthread_join(t_papir, NULL);
+    pthread_join(t_sibice, NULL);
+
+    return 0;
+}
+
+
+gcc zad2.c -o zad2 -lpthread
+./zad2
+
+Dobiveni ispis: 
+
+
+Dodatna objašnjenja:
+
+Problem pušača cigareta riješen je pomoću semafora tako da trgovac signalizira pušača koji ima treći sastojak, a pušač nakon pušenja signalizira trgovca, čime se osigurava ispravna sinkronizacija.
