@@ -1,0 +1,14 @@
+C:\Users\Administrator\source\repos\LV6\LV6\bin\Debug\net10.0\LV6.exe
+C:\Users\Administrator\source\repos\LV6\LV6\bin\Debug\net10.0\LV6.deps.json
+C:\Users\Administrator\source\repos\LV6\LV6\bin\Debug\net10.0\LV6.runtimeconfig.json
+C:\Users\Administrator\source\repos\LV6\LV6\bin\Debug\net10.0\LV6.dll
+C:\Users\Administrator\source\repos\LV6\LV6\bin\Debug\net10.0\LV6.pdb
+C:\Users\Administrator\source\repos\LV6\LV6\obj\Debug\net10.0\LV6.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Administrator\source\repos\LV6\LV6\obj\Debug\net10.0\LV6.AssemblyInfoInputs.cache
+C:\Users\Administrator\source\repos\LV6\LV6\obj\Debug\net10.0\LV6.AssemblyInfo.cs
+C:\Users\Administrator\source\repos\LV6\LV6\obj\Debug\net10.0\LV6.csproj.CoreCompileInputs.cache
+C:\Users\Administrator\source\repos\LV6\LV6\obj\Debug\net10.0\LV6.dll
+C:\Users\Administrator\source\repos\LV6\LV6\obj\Debug\net10.0\refint\LV6.dll
+C:\Users\Administrator\source\repos\LV6\LV6\obj\Debug\net10.0\LV6.pdb
+C:\Users\Administrator\source\repos\LV6\LV6\obj\Debug\net10.0\LV6.genruntimeconfig.cache
+C:\Users\Administrator\source\repos\LV6\LV6\obj\Debug\net10.0\ref\LV6.dll
