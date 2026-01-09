@@ -1,0 +1,74 @@
+1.a
+
+SELECT CONCAT(ime, ' ', LEFT(prezime, 1), '.') AS student
+FROM clan;
+
+
+b
+
+SELECT naslov 
+FROM knjiga 
+ORDER BY godina_izdanja ASC 
+LIMIT 1;
+
+
+
+
+
+2.a
+
+SELECT COUNT(*) 
+FROM student 
+WHERE spol = 'Ž';
+
+b
+
+SELECT ime, prezime, 
+       (YEAR(datum_upisa) - YEAR(datum_rodjenja)) AS godine_do_upisa
+FROM student;
+
+c
+
+SELECT COUNT(DISTINCT mjesto) 
+FROM student;
+
+
+
+3.
+
+SELECT s.mbr, s.ime, s.prezime, COUNT(i.ocjena) AS br_pozitivnih_oc
+FROM student s
+JOIN ispit i ON s.mbr = i.mbr
+WHERE i.ocjena > 1
+GROUP BY s.mbr, s.ime, s.prezime
+HAVING br_pozitivnih_oc > 2
+ORDER BY br_pozitivnih_oc DESC;
+
+
+
+4.a
+
+SELECT a.ime, a.prezime, COUNT(k.id_knjiga) AS broj_knjiga
+FROM autor a
+JOIN knjiga k ON a.id_autor = k.id_autor
+GROUP BY a.id_autor, a.ime, a.prezime;
+
+
+b
+
+SELECT godina_izdanja, AVG(broj_stranica) AS prosjek_stranica
+FROM knjiga
+GROUP BY godina_izdanja;
+
+
+
+5.
+
+CREATE OR REPLACE VIEW pogled_posudba AS
+SELECT p.id_posudba, 
+       CONCAT(c.ime, ' ', c.prezime) AS ime_i_prezime_clana, 
+       k.naslov AS naslov_knjige,
+       p.datum_posudbe
+FROM posudba p
+JOIN clan c ON p.clan_id = c.id_clan
+JOIN knjiga k ON p.knjiga_id = k.id_knjiga;
