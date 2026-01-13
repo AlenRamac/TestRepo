@@ -1,0 +1,124 @@
+1.
+
+
+
+CREATE FUNCTION fn_Count_AR (@word VARCHAR(MAX), @text VARCHAR(MAX))
+RETURNS VARCHAR(50)
+AS
+BEGIN
+    IF LEN(@word) > LEN(@text)
+        RETURN 'Neispravan unos'
+    
+    DECLARE @result INT
+    SET @result = (LEN(@text) - LEN(REPLACE(@text, @word, ''))) / LEN(@word)
+    RETURN CAST(@result AS VARCHAR)
+END
+
+
+
+CREATE PROCEDURE sp_Count_AR @word VARCHAR(MAX), @text VARCHAR(MAX) AS
+BEGIN
+    DECLARE @output VARCHAR(50)
+    SET @output = dbo.fn_Count_AR(@word, @text)
+    PRINT @output
+END
+
+
+
+
+CREATE TRIGGER tr_Accounts_AR
+ON accounts
+INSTEAD OF INSERT
+AS
+BEGIN
+    DECLARE @word VARCHAR(50), @text VARCHAR(MAX)
+    SELECT @word = word_column, @text = text_column FROM inserted
+    
+    INSERT INTO accounts (quantity, word_column, text_column)
+    VALUES (CAST(dbo.fn_Count_AR(@word, @text) AS INT), @word, @text)
+END
+
+
+
+
+2.
+
+
+CREATE TRIGGER tr_CalculateTotalWithDiscount_AR
+ON receipt_items_<mbr>
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    DECLARE @receipt_no INT, @item_no INT, @subtotal DECIMAL(8,2)
+    
+    SELECT @receipt_no = receipt_number, @item_no = no FROM inserted
+    
+    UPDATE receipt_items_<mbr>
+    SET total = CASE 
+        WHEN (quantity * price) > 100 THEN (quantity * price) * 0.90
+        ELSE (quantity * price)
+    END
+    WHERE receipt_number = @receipt_no AND no = @item_no
+END
+
+
+
+
+
+3.
+
+CREATE PROCEDURE sp_PrintVehicleAge_AR
+AS
+BEGIN
+    SELECT 
+        marka, 
+        model, 
+        (YEAR(GETDATE()) - YEAR(production_date)) AS Starost [cite: 60]
+    FROM vehicle
+END
+
+
+
+
+
+
+
+
+Testing
+
+-- Test ispravnog unosa (očekivani rezultat: 2)
+SELECT dbo.fn_Count_AR('test', 'ovo je test za test') AS Rezultat;
+
+-- Test neispravnog unosa (očekivani rezultat: Neispravan unos)
+SELECT dbo.fn_Count_AR('preduga_rijec', 'tekst') AS Rezultat;
+
+
+-- Poziv procedure koja ispisuje rezultat naredbom PRINT
+exec sp_Count_AR 'SQL', 'SQL je super, SQL je brz';
+
+
+
+-- Unesite podatke, a okidač će automatski izračunati 'quantity'
+INSERT INTO accounts (word_column, text_column) 
+VALUES ('jabuka', 'jedna jabuka i još jedna jabuka');
+
+SELECT * FROM accounts; -- Provjerite je li u quantity upisan broj 2
+
+
+
+
+
+-- Unos stavke iznad 100€ (npr. 2 * 60€ = 120€)
+INSERT INTO receipt_items_<mbr> (receipt_number, no, quantity, price) 
+VALUES (1, 1, 2, 60.00);
+
+-- Provjera je li total 108.00 (120€ - 10% rabata)
+SELECT * FROM receipt_items_<mbr> WHERE receipt_number = 1; [cite: 243]
+
+
+
+
+
+
+-- Jednostavan poziv procedure
+exec sp_PrintVehicleAge;
