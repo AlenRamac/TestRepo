@@ -1,0 +1,105 @@
+1.
+
+
+DELIMITER //
+
+CREATE FUNCTION fn_CountOccurrences(p_word VARCHAR(255), p_content TEXT)
+RETURNS VARCHAR(255)
+DETERMINISTIC
+BEGIN
+    DECLARE v_count INT;
+    
+    -- Provjera: je li riječ duža od samog teksta
+    IF CHAR_LENGTH(p_word) > CHAR_LENGTH(p_content) THEN
+        RETURN 'Neispravan unos';
+    END IF;
+    
+    -- Formula: (ukupna_dužina - dužina_bez_tražene_riječi) / dužina_riječi
+    SET v_count = (CHAR_LENGTH(p_content) - CHAR_LENGTH(REPLACE(p_content, p_word, ''))) / CHAR_LENGTH(p_word);
+    
+    RETURN CAST(v_count AS CHAR);
+END //
+
+DELIMITER ;
+
+
+
+
+
+
+
+
+DELIMITER //
+
+CREATE PROCEDURE sp_CountOccurrences(IN p_word VARCHAR(255), IN p_content TEXT)
+BEGIN
+    DECLARE v_result VARCHAR(255);
+    
+    -- Pozivamo već napisanu funkciju kako ne bismo ponavljali istu logiku (DRY princip)
+    SET v_result = fn_CountOccurrences(p_word, p_content);
+    
+    SELECT v_result AS 'Result';
+END //
+
+DELIMITER ;
+
+
+
+
+
+
+
+-- Kreiranje tablice s logičnijim nazivima stupaca
+CREATE TABLE SearchHistory (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    search_term VARCHAR(255),
+    source_text TEXT,
+    occurrence_count VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Okidač koji se izvršava prije (BEFORE) samog unosa u bazu
+DELIMITER //
+
+CREATE TRIGGER tr_BeforeInsert_SearchHistory
+BEFORE INSERT ON SearchHistory
+FOR EACH ROW
+BEGIN
+    -- Automatsko popunjavanje stupca occurrence_count koristeći funkciju
+    SET NEW.occurrence_count = fn_CountOccurrences(NEW.search_term, NEW.source_text);
+END //
+
+DELIMITER ;
+
+
+
+
+
+
+
+
+
+_________Test_________
+
+
+SELECT fn_CountOccurrences('jabuka', 'jedna jabuka, dvije jabuke') AS 'Rezultat'; 
+
+-- Vraća: 2
+
+SELECT fn_CountOccurrences('jako_duga_rijec', 'kratko') AS 'Rezultat';
+
+-- Vraća: Neispravan unos
+
+CALL sp_CountOccurrences('jabuka', 'Ovo je tekst o kruškama.');
+
+'SQL', 'SQL je moćan, volim SQL!'
+-- Ispisuje: 2
+
+
+
+INSERT INTO SearchHistory (search_term, source_text) 
+VALUES ('test', 'Ovo je testni primjer za test.');
+
+SELECT * FROM SearchHistory;	
+
+-- Vidjet ćete da je stupac 'brojac' automatski popunjen vrijednošću
