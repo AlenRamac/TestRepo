@@ -1,0 +1,130 @@
+#include <windows.h>
+#include <stdio.h>
+
+int main() {
+    WIN32_FIND_DATAA findData;
+    HANDLE hFind = FindFirstFileA("*", &findData);
+
+    if (hFind == INVALID_HANDLE_VALUE) {
+        printf("Direktorij nije moguce procitati.\n");
+        return 1;
+    }
+
+    printf("Datoteke u direktoriju:\n");
+    do {
+        // Ispisujemo naziv datoteke ili mape
+        printf("%s\n", findData.cFileName);
+    } while (FindNextFileA(hFind, &findData) != 0);
+
+    FindClose(hFind);
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+#include <windows.h>
+#include <stdio.h>
+
+int main() {
+    STARTUPINFOA si;
+    PROCESS_INFORMATION pi;
+
+    // Inicijalizacija struktura na nulu
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
+
+    // Pokretanje Notepad-a
+    if (!CreateProcessA("C:\\Windows\\System32\\notepad.exe", NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+        printf("Kreiranje procesa nije uspjelo (%d).\n", GetLastError());
+        return 1;
+    }
+
+    printf("Proces uspjesno pokrenut. PID: %d\n", pi.dwProcessId);
+
+    // Zatvaranje handle-ova jer nam vise ne trebaju
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#include <windows.h>
+#include <stdio.h>
+
+// Globalna varijabla
+int polje[] = { 12, 5, 88, 2, 34, 67, 10, 45 };
+int duljina = 8;
+
+// Nit 1: Najveci element
+DWORD WINAPI MaxNit(LPVOID lpParam) {
+    int max = polje[0];
+    for (int i = 1; i < duljina; i++) {
+        if (polje[i] > max) max = polje[i];
+    }
+    printf("Najveci element: %d\n", max);
+    return 0;
+}
+
+// Nit 2: Najmanji element
+DWORD WINAPI MinNit(LPVOID lpParam) {
+    int min = polje[0];
+    for (int i = 1; i < duljina; i++) {
+        if (polje[i] < min) min = polje[i];
+    }
+    printf("Najmanji element: %d\n", min);
+    return 0;
+}
+
+// Nit 3: Ispis cijelog polja
+DWORD WINAPI IspisNit(LPVOID lpParam) {
+    printf("Sadrzaj polja: ");
+    for (int i = 0; i < duljina; i++) {
+        printf("%d ", polje[i]);
+    }
+    printf("\n");
+    return 0;
+}
+
+int main() {
+    HANDLE niti[3];
+
+    // Kreiranje niti
+    niti[0] = CreateThread(NULL, 0, MaxNit, NULL, 0, NULL);
+    niti[1] = CreateThread(NULL, 0, MinNit, NULL, 0, NULL);
+    niti[2] = CreateThread(NULL, 0, IspisNit, NULL, 0, NULL);
+
+    // Cekamo da sve niti zavrse prije gasenja programa
+    WaitForMultipleObjects(3, niti, TRUE, INFINITE);
+
+    // Zatvaranje handle-ova
+    for (int i = 0; i < 3; i++) CloseHandle(niti[i]);
+
+    return 0;
+}
